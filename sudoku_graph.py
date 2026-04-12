@@ -38,18 +38,21 @@ class SudokuGraph:
     
 
     def __repr__(self) -> str:
-        box_size = 2 + len(str(self.size))
-        row_border = '+' + '+'.join(['-' * box_size] * self.size) + '+\n'
+        value_length = len(str(self.size))
+        row_border = '+' + '-+'.join(['-' * (1 + value_length) * self.sub_size] * self.sub_size) + '-+\n'
 
         s = ''
         s += row_border
 
-        for r, c in product(range(self.size), repeat=2):
-            node = self.nodes[(r, c)]
-            value_str = str(node.value) if node.value != 0 else ' '
-            s += f'| {value_str:^{box_size - 2}} '
-            if c == self.size - 1:
-                s += '|\n' + row_border
+        for r in range(self.size):
+            s += '|' 
+
+            for c in range(self.size):
+                node = self.nodes[(r, c)]
+                value_str = str(node.value) if node.value != 0 else ' '
+                s += f' {value_str:^{value_length}}{' |' if (c + 1) % self.sub_size == 0 else ''}'
+            
+            s += f'\n{row_border if (r + 1) % self.sub_size == 0 else ""}'  # End of row and add border after subgrid
         
         return s
 
@@ -63,8 +66,9 @@ class SudokuGraphNode:
     def add_neighbor(self, neighbor_node: 'SudokuGraphNode'):
         self.adjacent_nodes.add(neighbor_node)
     
-    def set_value(self, value: int):
-        self.value = value
+    def set_value(self, value: int | None, start_value: bool = False):
+        self.value = value if value is not None else 0
+        self.start_value = start_value
     
     def check_value(self, value: int) -> bool:
         for neighbor in self.adjacent_nodes:
