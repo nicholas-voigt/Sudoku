@@ -1,23 +1,20 @@
-from sudoku_graph import SudokuGraph
+from sudoku_graph import SudokuGraphNode
 
-def brute_force(sudoku: SudokuGraph) -> bool:
-    """Brute-force backtracking solver."""
-    # Find next empty cell
-    empty_cell = None
-    for _, node in sudoku.nodes.items():
-        if node.value == 0:
-            empty_cell = node
-            break
-    
-    if not empty_cell:
+
+def brute_force(nodes: list[SudokuGraphNode], idx: int = 0) -> bool:
+    """Brute-force backtracking solver."""    
+    if idx == len(nodes):
         return True  # Solved
-    
-    for num in range(1, sudoku.size + 1):
-        if empty_cell.check_value(num):
-            empty_cell.set_value(num)
-            if brute_force(sudoku):
+
+    node = nodes[idx]
+
+    for num in node.range:
+        if node.check_value(num):
+            node.set_value(num)
+            if brute_force(nodes, idx + 1):  # Recur with the remaining nodes
                 return True
-            empty_cell.set_value(0)  # Backtrack
+            node.set_value(0)  # Backtrack
     
     return False
+
 
