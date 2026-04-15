@@ -14,7 +14,7 @@ class SudokuGraph:
     def build_graph(self):
         # Create nodes for each cell in the Sudoku grid
         self.nodes = {
-            (r, c): SudokuGraphNode(r, c)
+            (r, c): SudokuGraphNode(r, c, set(range(1, self.size + 1)))
             for r, c in product(range(self.size), repeat=2)
         }
 
@@ -58,9 +58,10 @@ class SudokuGraph:
 
 
 class SudokuGraphNode:
-    def __init__(self, row: int, col: int) -> None:
+    def __init__(self, row: int, col: int, value_range: set) -> None:
         self.position = (row, col)
         self.value = 0
+        self.range = value_range
         self.adjacent_nodes = set()
     
     def add_neighbor(self, neighbor_node: 'SudokuGraphNode'):
