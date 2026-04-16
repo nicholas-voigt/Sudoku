@@ -20,7 +20,7 @@ def fill_sudoku(sudoku_structure: SudokuGraph | SudokuMatrix, method: int = 0 | 
     if method == 0:
         sub_size = sudoku_structure.sub_size
         difficulty = kwargs.get('difficulty', 0.5)
-        sudoku = Sudoku(sub_size).difficulty(difficulty)
+        sudoku = Sudoku(sub_size).difficulty(difficulty).board
 
     elif method == 1:
         sudoku = kwargs.get('sudoku_board')
@@ -31,7 +31,7 @@ def fill_sudoku(sudoku_structure: SudokuGraph | SudokuMatrix, method: int = 0 | 
         raise ValueError("Invalid method. Supported methods are 0 (py-sudoku) and 1 (given board).")
 
     for r, c in product(range(sudoku_structure.size), repeat=2):
-        value = sudoku.board[r][c]
+        value = sudoku[r][c]
         if value is not None:
             if isinstance(sudoku_structure, SudokuGraph):
                 sudoku_structure.nodes[(r, c)].set_value(value, start_value=True)
@@ -40,7 +40,7 @@ def fill_sudoku(sudoku_structure: SudokuGraph | SudokuMatrix, method: int = 0 | 
 
 
 def is_valid_board(x: object) -> bool:
-    """Checkss if the object is a valid sudoku board as list[list[int | None]]."""
+    """Checks if the object is a valid sudoku board as list[list[int | None]]."""
     if not isinstance(x, list):
         return False
     if not all(isinstance(row, list) for row in x):
