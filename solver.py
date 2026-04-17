@@ -1,19 +1,17 @@
 ### Wrapper to handle the solving of a sudoku graph with different strategies.
 
-from sudoku_graph import SudokuGraph
-from matrix import SudokuMatrix
+from structure import SudokuGraph, SudokuMatrix
 from strategies import graph_backtracking_solver, matrix_backtracking_solver
 
 
 def solve_sudoku(sudoku: SudokuGraph | SudokuMatrix, method: str = 'standard') -> bool:
     if method == 'standard':
+        cellsToFill = sudoku.getBlanks()
+
         if isinstance(sudoku, SudokuGraph):
-            cells_to_fill = [node for node in sudoku.nodes.values() if node.value == 0]
-            return graph_backtracking_solver(cells_to_fill)
-        
+            return graph_backtracking_solver(sudoku, cellsToFill)
         elif isinstance(sudoku, SudokuMatrix):
-            cells_to_fill = sudoku.get_blanks()
-            return matrix_backtracking_solver(sudoku, cells_to_fill)
+            return matrix_backtracking_solver(sudoku, cellsToFill)
 
     else:
         raise ValueError(f"Unknown solving method: {method}")

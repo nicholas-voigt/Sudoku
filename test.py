@@ -1,8 +1,7 @@
 ### Script to create sudokus and solve them with the respective algorithms
 
 from argparse import ArgumentParser
-from sudoku_graph import SudokuGraph
-from matrix import SudokuMatrix
+from structure import SudokuGraph, SudokuMatrix
 from filler import fill_sudoku
 from solver import solve_sudoku
 
@@ -33,7 +32,7 @@ if __name__ == "__main__":
     print(sudoku)
 
     print("Solving Sudoku...")
-    if solve_sudoku(sudoku, method=args.solving_method):
+    if solve_sudoku(sudoku, method=args.solving_method) and sudoku.checkSolution():
         print("Sudoku solved successfully!")
     else:
         print("Failed to solve the Sudoku.")

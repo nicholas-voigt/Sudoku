@@ -4,8 +4,7 @@
 
 from sudoku import Sudoku
 from itertools import product
-from sudoku_graph import SudokuGraph
-from matrix import SudokuMatrix
+from structure import SudokuGraph, SudokuMatrix
 
 
 def fill_sudoku(sudoku_structure: SudokuGraph | SudokuMatrix, method: int = 0 | 1, **kwargs):
@@ -33,10 +32,7 @@ def fill_sudoku(sudoku_structure: SudokuGraph | SudokuMatrix, method: int = 0 | 
     for r, c in product(range(sudoku_structure.size), repeat=2):
         value = sudoku[r][c]
         if value is not None:
-            if isinstance(sudoku_structure, SudokuGraph):
-                sudoku_structure.nodes[(r, c)].set_value(value, start_value=True)
-            elif isinstance(sudoku_structure, SudokuMatrix):
-                sudoku_structure.set_value(r, c, value, update=True, preassigned=True)
+            sudoku_structure.setValue(r, c, value, True)
 
 
 def is_valid_board(x: object) -> bool:
