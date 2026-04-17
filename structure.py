@@ -19,13 +19,8 @@ class SudokuStructure(ABC):
         ...
     
     @abstractmethod
-    def checkValue(self, r: int, c: int, v: int) -> bool:
-        """Returns whether v is valid at (r, c) in current state."""
-        ...
-
-    @abstractmethod
-    def setValue(self, r: int, c: int, v: int, preassigned: bool = False) -> None:
-        """Sets v as value of cell (r, c). Raises Error if values are out of bounds or cell is preassigned. Does not check validity of value"""
+    def setValue(self, r: int, c: int, v: int, preassigned: bool = False) -> bool:
+        """Sets v as value of cell (r, c) if it is a valid assignment in the current state. Returns if assignment was successful or not."""
         ...
     
     @abstractmethod
@@ -38,14 +33,11 @@ class SudokuStructure(ABC):
         """Returns a list of coordinates from empty cells in the Sudoku."""
         ...
 
+    @abstractmethod
     def checkSolution(self) -> bool:
         """Checks if the current sudoku is a valid solution."""
-        for r, c in product(range(self.size), repeat=2):
-            num = self.getValue(r, c)
-            if num == 0 or not self.checkValue(r, c, num):
-                return False
-        return True
-    
+        ...
+        
     def __repr__(self) -> str:
         s = ''
         value_length = len(str(self.size))
@@ -71,23 +63,20 @@ class SudokuGraph(SudokuStructure):
     def getValue(self, r: int, c: int) -> int:
         return self.nodes[(r, c)].value    
 
-    def checkValue(self, r: int, c: int, v: int) -> bool:
+    def setValue(self, r: int, c: int, v: int, preassigned: bool = False) -> bool:
         if not (0 <= r < self.size and 0 <= c < self.size and 1 <= v <= self.size):
             raise ValueError("Invalid inputs")
+        # Retrieve node and check if assignment is valid (not preassigned node and doesn't violate neighbors)
         node = self.nodes[(r, c)]
+        if node.preassigned:
+            return False
         for neighbor in node.adjacent_nodes:
             if neighbor.value == v:
                 return False
-        return True
-    
-    def setValue(self, r: int, c: int, v: int, preassigned: bool = False) -> None:
-        if not (0 <= r < self.size and 0 <= c < self.size and 1 <= v <= self.size):
-            raise ValueError("Invalid inputs")
-        node = self.nodes[(r, c)]
-        assert not node.preassigned
+        # Assign value and set preassignment flag if necessary
         node.value = v
         node.preassigned = preassigned
-        return
+        return True
     
     def clearValue(self, r: int, c: int) -> None:
         if not (0 <= r < self.size and 0 <= c < self.size):
@@ -99,6 +88,16 @@ class SudokuGraph(SudokuStructure):
     
     def getBlanks(self) -> list[tuple[int, int]]:
         return [node.position for node in self.nodes.values() if node.value == 0]
+    
+    def checkSolution(self) -> bool:
+        for node in self.nodes.values():
+            v = node.value
+            if v == 0:
+                return False
+            for neighbor in node.adjacent_nodes:
+                if neighbor.value == v:
+                    return False
+        return True
 
     def _buildGraph(self):
         # Create nodes for each cell in the Sudoku grid
@@ -146,9 +145,12 @@ class SudokuMatrix(SudokuStructure):
     def getValue(self, r: int, c: int) -> int:
         return self.matrix[r][c]
 
-    def checkValue(self, r: int, c: int, v: int) -> bool:
+    def setValue(self, r: int, c: int, v: int, preassigned: bool = False) -> bool:
         if not (0 <= r < self.size and 0 <= c < self.size and 1 <= v <= self.size):
             raise ValueError("Invalid inputs")
+        
+        if self.preassigned[r][c]:
+            return False
         # Check row and column
         for i in range(self.size):
             if self.matrix[r][i] == v and i != c:  # Check row
@@ -161,17 +163,6 @@ class SudokuMatrix(SudokuStructure):
         for rr, cc in product(range(start_row, start_row + self.sub_size), range(start_col, start_col + self.sub_size)):
             if self.matrix[rr][cc] == v and (rr, cc) != (r, c):
                 return False
-        return True
-    
-    def setValue(self, r: int, c: int, v: int, preassigned: bool = False) -> None:
-        if not (0 <= r < self.size and 0 <= c < self.size and 1 <= v <= self.size):
-            raise ValueError("Invalid inputs")
-        
-        if self.preassigned[r][c]:
-            raise ValueError("Cannot change a preassigned value")
-        
-        # if self.values[r][c][v - 1] == False:
-        #     raise ValueError("Value not possible for this cell")
         
         self.matrix[r][c] = v
         self.preassigned[r][c] = preassigned
@@ -190,7 +181,7 @@ class SudokuMatrix(SudokuStructure):
         #     for rr, cc in product(range(start_row, start_row + self.sub_size), range(start_col, start_col + self.sub_size)):
         #         if (rr, cc) != (r, c):
         #             self.values[rr][cc][v - 1] = False
-        return
+        return True
     
 
     def clearValue(self, r: int, c: int) -> None:
@@ -204,3 +195,11 @@ class SudokuMatrix(SudokuStructure):
     def getBlanks(self) -> list[tuple[int, int]]:
         return [(r, c) for r, c in product(range(self.size), repeat=2) if self.matrix[r][c] == 0]
     
+    def checkSolution(self) -> bool:
+        for r, c in product(range(self.size), repeat=2):
+            if self.preassigned[r][c]:
+                continue
+            v = self.getValue(r, c)
+            if not (v and self.setValue(r, c, v)):
+                return False
+        return True
