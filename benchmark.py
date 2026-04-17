@@ -18,6 +18,7 @@ def benchmark(type: str, solver: str, subsize: int, puzzles: str):
     with open(puzzles, 'r') as f:
         puzzle_boards = json.load(f)
 
+    t0 = time.perf_counter()
     sudokus = []
     for board in puzzle_boards:
         if type == 'graph':
@@ -28,13 +29,14 @@ def benchmark(type: str, solver: str, subsize: int, puzzles: str):
             raise ValueError("Invalid type. Supported types are 'graph' and 'matrix'.")
         fill_sudoku(sudoku, method=1, sudoku_board=board)
         sudokus.append(sudoku)
+    print(f"Created {len(sudokus)} Sudokus with type '{type}' in {time.perf_counter() - t0:.4f} seconds.")
 
     print("Starting benchmarking runs...")
     t0 = time.perf_counter()
     for sudoku in sudokus:
         ok = solve_sudoku(sudoku, method=solver)
         assert ok
-    print(f"Completed {len(sudokus)} runs on {type} Sudokus with method '{solver}' in {time.perf_counter() - t0:.4f} seconds.")
+    print(f"Completed {len(sudokus)} Sudokus with method '{solver}' in {time.perf_counter() - t0:.4f} seconds.")
 
 
 if __name__ == "__main__":
